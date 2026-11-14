@@ -158,7 +158,7 @@ function vMate(){
  return `<div class="av">${S.friends.map(x=>`<button class="${x===c?'on':''}" data-a="peek" data-v="${x}" aria-label="${nm(x)}의 화면 보기">${nm(x)[0]}</button>`).join('')}</div>
  <div class="sub">프로필을 누르면 메이트 화면을 볼 수 있어요</div>
  ${say?`<div class="w">${say}</div>`:''}
- <label class="cam" role="button" tabindex="0"><span>📸</span>인증하기<small style="display:block;font:13px sans-serif">${esc(nm(c))}님에게</small><input type="file" accept="image/*" id="cf" hidden></label>
+ <label class="cam" role="button" tabindex="0"><span>📸</span>사진 찍기<small style="display:block;font:13px sans-serif">${esc(nm(c))}님에게</small><input type="file" accept="image/*" capture="environment" id="cf" hidden></label><div style="text-align:center"><label class="ghost" style="display:inline-block;cursor:pointer">앨범에서 사진 고르기<input type="file" accept="image/*" data-pic="1" hidden></label></div>
  ${certsHtml()}${cert?`<div class="card"><b>방금 인증했어요</b> <span class="mute">${cert.to}</span><img class="bigimg" data-a="zoomMe" src="${cert.src}" alt="내가 보낸 인증샷"></div></div>`:''}
  <div class="two"><button class="ghost" data-a="throw">할 일 던지기</button><button class="ghost" data-a="poke">콕 찌르기</button></div>
  <div class="card"><h3>과제·수행평가</h3><div class="seg"><button class="${asTab==='j'?'on':''}" data-a="as" data-v="j">공동</button><button class="${asTab==='m'?'on':''}" data-a="as" data-v="m">개인</button></div>
@@ -328,6 +328,7 @@ find:async()=>{const c=($('#fc').value||'').trim().toUpperCase().replace(/[^A-Z0
 S.hist=S.hist||{};S.jp=S.jp||{};S.jx=S.jx||{};S.tc=S.tc||{d:'',c:{}};
 if(S.chat&&S.chat.d===ymd()){chat=S.chat.c;chat.busy=0}else S.chat=null;
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='td')act.addT()});
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.pic)newCert(e)});
 roll();render();
 function onboard(){sheet(`<h3>이름을 알려 주세요</h3><p class="mute">친구에게 보이는 이름이에요.</p><div class="row"><input id="nn" maxlength="8" placeholder="예: 민지"><button class="pri" data-a="signup">시작</button></div>`)}
 async function start_old(){if(S.reg){const s=await getDoc(doc(db,'users',S.code));if(!s.exists()||s.data().uid!==uid)S.reg=0}if(!S.reg){onboard();return}listen()}
