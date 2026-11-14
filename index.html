@@ -158,7 +158,7 @@ function vMate(){
  return `<div class="av">${S.friends.map(x=>`<button class="${x===c?'on':''}" data-a="peek" data-v="${x}" aria-label="${nm(x)}의 화면 보기">${nm(x)[0]}</button>`).join('')}</div>
  <div class="sub">프로필을 누르면 메이트 화면을 볼 수 있어요</div>
  ${say?`<div class="w">${say}</div>`:''}
- <label class="cam" role="button" tabindex="0"><span>📸</span>인증하기<small style="display:block;font:13px sans-serif">${esc(nm(c))}님에게</small><input type="file" accept="image/*" capture="environment" id="cf" hidden></label>
+ <label class="cam" role="button" tabindex="0"><span>📸</span>인증하기<small style="display:block;font:13px sans-serif">${esc(nm(c))}님에게</small><input type="file" accept="image/*" id="cf" hidden></label>
  ${certsHtml()}${cert?`<div class="card"><b>방금 인증했어요</b> <span class="mute">${cert.to}</span><img class="bigimg" data-a="zoomMe" src="${cert.src}" alt="내가 보낸 인증샷"></div></div>`:''}
  <div class="two"><button class="ghost" data-a="throw">할 일 던지기</button><button class="ghost" data-a="poke">콕 찌르기</button></div>
  <div class="card"><h3>과제·수행평가</h3><div class="seg"><button class="${asTab==='j'?'on':''}" data-a="as" data-v="j">공동</button><button class="${asTab==='m'?'on':''}" data-a="as" data-v="m">개인</button></div>
@@ -245,9 +245,9 @@ const stx=x=>x==='대기'?'답을 기다리는 중':x==='수락'?'수락했어�
 const sr=()=>{const a=document.activeElement;if(a&&a.tagName==='INPUT'&&!a.disabled&&a.type!=='checkbox')return;render()};
 function push(){clearTimeout(pushT);pushT=setTimeout(()=>{if(db&&S.reg)updateDoc(doc(db,'users',S.code),{todos:S.todos,mine:S.mine,day:S.day}).catch(()=>{})},600)}
 function sj(){const c=S.sel;setDoc(doc(db,'joints',key(S.code,c)),{items:J[c]||[]}).catch(()=>toast('저장에 실패했어요'))}
-function shrink(f){return new Promise(res=>{const im=new Image();im.onload=()=>{const k=Math.min(1,900/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.7))};im.src=URL.createObjectURL(f)})}
-async function newCert(e){const f=e.target.files[0];const c=S.sel;if(!f||!c)return;const src=await shrink(f);cert={src,to:nm(c)+'님에게 전송'};render();
- try{await setDoc(doc(db,'certs',S.code+'_'+c),{from:S.code,to:c,img:src,at:Date.now()})}catch(x){return toast('전송에 실패했어요')}
+function shrink(f){return new Promise(res=>{const im=new Image();im.onload=()=>{const k=Math.min(1,720/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.6))};im.onerror=()=>res(null);im.src=URL.createObjectURL(f)})}
+async function newCert(e){const f=e.target.files[0];const c=S.sel;if(!f||!c)return;const src=await shrink(f);if(!src)return toast('사진을 읽지 못했어요. 다른 사진으로 해 보세요');cert={src,to:nm(c)+'님에게 전송'};render();
+ try{await setDoc(doc(db,'certs',S.code+'_'+c),{from:S.code,to:c,img:src,at:Date.now()})}catch(x){return toast('전송에 실패했어요 ('+(x.code||x.message)+')')}
  toast(nm(c)+'님에게 인증샷을 보냈어요 📸','취소',async()=>{cert=null;await deleteDoc(doc(db,'certs',S.code+'_'+c));render()})}
 function certsHtml(){return S.friends.filter(c=>CT[c]&&new Date(CT[c].at).toDateString()===new Date().toDateString()).map(c=>`<div class="card"><b>${esc(nm(c))}님이 인증했어요</b> <span class="mute">${new Date(CT[c].at).toTimeString().slice(0,5)}</span><img class="bigimg" data-a="zoom" data-v="${c}" src="${CT[c].img}" alt="${esc(nm(c))}님의 인증샷"></div>`).join('')}
 function vFr(found,msg){const full=S.friends.length>=3;let res=msg?`<p class="mute">${msg}</p>`:'';
