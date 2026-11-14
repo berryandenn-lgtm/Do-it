@@ -301,15 +301,16 @@ undo(v){if(asTab==='j'){const c=S.sel;JD.delete(c+'|'+v);S.jp[c][v]=4;save();ren
 let AU,PN='',AM='login',NOCLOSE=false;
 const IN='style="width:100%;margin:6px 0"';
 function authUI(){NOCLOSE=true;sheet(`<h3>Do It</h3><div class="seg"><button class="${AM==='login'?'on':''}" data-a="am" data-v="login">로그인</button><button class="${AM==='up'?'on':''}" data-a="am" data-v="up">회원가입</button></div>${AM==='up'?`<input id="an" maxlength="8" placeholder="이름 (친구에게 보여요)" ${IN}>`:''}<input id="aid" placeholder="아이디 (영문·숫자 4~16자)" autocapitalize="none" autocomplete="username" ${IN}><input id="apw" type="password" placeholder="비밀번호 (6자 이상)" autocomplete="${AM==='up'?'new-password':'current-password'}" ${IN}><p class="mute" id="aerr"></p><button class="pri" style="width:100%" data-a="authGo">${AM==='up'?'가입하기':'로그인'}</button>${AM==='up'?'<p class="mute">비밀번호를 잊으면 찾을 수 없으니 꼭 기억해 두세요.</p>':''}`)}
+function showErr(e){const m='저장·불러오기에 실패했어요 ('+(e.code||e.message)+'). Firebase의 Firestore 데이터베이스와 규칙을 확인해 주세요.';const a=$('#aerr');if(a)a.textContent=m;else sheet('<h3>오류</h3><p class="mute">'+m+'</p>')}
 async function makeProfile(n){let c;for(let i=0;i<6;i++){c=gen();if(!(await getDoc(doc(db,'users',c))).exists())break}
  await setDoc(doc(db,'users',c),{uid,name:n,friends:[],todos:S.todos,mine:S.mine,day:S.day});S.code=c;S.name=n;S.reg=1;S.pokeSeen=Date.now();lsave();NOCLOSE=false;
  sheet(`<h3>내 코드가 만들어졌어요</h3><div class="code">${c}</div><p class="mute" style="text-align:center">이 코드는 바꿀 수 없어요. 친구에게 알려주세요.</p><button class="pri" style="width:100%" data-a="close">시작하기</button>`);listen();render()}
-async function start(){let q;try{q=await getDocs(query(collection(db,'users'),where('uid','==',uid)))}catch(e){return toast('불러오기에 실패했어요. 규칙과 인터넷을 확인해 주세요')}
- if(q.empty){if(PN){const n=PN;PN='';await makeProfile(n)}else{NOCLOSE=true;sheet(`<h3>이름을 알려 주세요</h3><div class="row"><input id="nn" maxlength="8" placeholder="예: 민지"><button class="pri" data-a="signup">시작</button></div>`)}return}
+async function start(){let q;try{q=await getDocs(query(collection(db,'users'),where('uid','==',uid)))}catch(e){return showErr(e)}
+ if(q.empty){if(PN){const n=PN;PN='';await makeProfile(n).catch(showErr)}else{NOCLOSE=true;sheet(`<h3>이름을 알려 주세요</h3><div class="row"><input id="nn" maxlength="8" placeholder="예: 민지"><button class="pri" data-a="signup">시작</button></div>`)}return}
  const d=q.docs[0],dd=d.data();S.code=d.id;S.name=dd.name;S.reg=1;if(S.day&&dd.day===S.day)S.todos=dd.todos||[];if(dd.mine)S.mine=dd.mine;lsave();NOCLOSE=false;sheet('');listen();render()}
 Object.assign(act,{
 am(v){AM=v;authUI()},
-signup(){const n=($('#nn').value||'').trim();if(n)makeProfile(n)},
+signup(){const n=($('#nn').value||'').trim();if(n)makeProfile(n).catch(showErr)},
 authGo:async()=>{const id=($('#aid').value||'').trim().toLowerCase(),pw=$('#apw').value||'',n=($('#an')?$('#an').value:'').trim();const err=m=>{$('#aerr').textContent=m};
  if(!/^[a-z0-9]{4,16}$/.test(id))return err('아이디는 영문 소문자·숫자 4~16자예요.');if(pw.length<6)return err('비밀번호는 6자 이상이에요.');if(AM==='up'&&!n)return err('이름을 입력해 주세요.');
  try{if(AM==='up'){PN=n;await createUserWithEmailAndPassword(AU,id+'@doit.app',pw)}else await signInWithEmailAndPassword(AU,id+'@doit.app',pw)}
